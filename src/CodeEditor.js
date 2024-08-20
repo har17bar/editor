@@ -11,6 +11,7 @@ const CodeEditor = () => {
     const [language, setLanguage] = useState('javascript');
     const [chatInput, setChatInput] = useState('');
     const [chatMessages, setChatMessages] = useState([]);
+    const [output, setOutput] = useState('');
 
     const iframeRef = useRef(null);
 
@@ -56,7 +57,6 @@ const CodeEditor = () => {
 
     const runCode = async () => {
         try {
-            console.log(code, "code")
             let codeToRun = code;
 
             if (language === 'typescript') {
@@ -77,17 +77,16 @@ const CodeEditor = () => {
 
                 console.log = originalConsoleLog;
                 const output = outputLogs.join('\n');
-                setChatMessages((prevMessages) => [...prevMessages, { type: 'code', content: output }]);
+                setOutput(output);
             } else if (language === 'html' || language === 'css') {
                 updateIframeContent();
             } else {
                 const response = await axios.post('API_ENDPOINT', { language, code });
                 const output = response.data.output || 'Execution failed.';
-                setChatMessages((prevMessages) => [...prevMessages, { type: 'code', content: output }]);
+                setOutput(output);
             }
         } catch (error) {
-            const errorMessage = `Error: ${error.message}`;
-            setChatMessages((prevMessages) => [...prevMessages, { type: 'code', content: errorMessage }]);
+            setOutput(`Error: ${error.message}`);
         }
     };
 
@@ -145,6 +144,9 @@ const CodeEditor = () => {
                         <option value="json">JSON</option>
                         <option value="typescript">TypeScript</option>
                     </select>
+                    <button onClick={runCode} style={{ padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#28a745', color: '#fff', cursor: 'pointer' }}>
+                        Run Code
+                    </button>
                 </div>
 
                 <Editor
@@ -160,44 +162,52 @@ const CodeEditor = () => {
                         automaticLayout: true,
                         minimap: { enabled: false },
                     }}
-                    height="100%"
+                    height="calc(100vh - 50px)" // Adjust the height to account for the toolbar above
                 />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-                <div style={{ flex: 1, overflowY: 'auto', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px' }}>
-                    {chatMessages.map((msg, index) => (
-                        <div key={index} style={{ marginBottom: '10px', backgroundColor: '#fff', padding: '10px', borderRadius: '5px' }}>
-                            {msg.type === 'text' && <p>{msg.content}</p>}
-                            {msg.type === 'code' && (
-                                <div style={{ backgroundColor: '#333', color: '#fff', padding: '10px', borderRadius: '5px', position: 'relative' }}>
-                                    <code style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</code>
-                                    <button
-                                        onClick={() => copyToClipboard(msg.content)}
-                                        style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#555', color: '#fff', border: 'none', padding: '5px', cursor: 'pointer' }}>
-                                        Copy
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+            <Split
+                sizes={[70, 30]}
+                direction="vertical"
+                style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+                className="split-vertical"
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px' }}>
+                        {chatMessages.map((msg, index) => (
+                            <div key={index} style={{ marginBottom: '10px', backgroundColor: '#fff', padding: '10px', borderRadius: '5px' }}>
+                                {msg.type === 'text' && <p>{msg.content}</p>}
+                                {msg.type === 'code' && (
+                                    <div style={{ backgroundColor: '#333', color: '#fff', padding: '10px', borderRadius: '5px', position: 'relative' }}>
+                                        <code style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</code>
+                                        <button
+                                            onClick={() => copyToClipboard(msg.content)}
+                                            style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: '#555', color: '#fff', border: 'none', padding: '5px', cursor: 'pointer' }}>
+                                            Copy
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', marginTop: '10px', padding: '10px', backgroundColor: '#fff', borderRadius: '5px' }}>
+                        <input
+                            type="text"
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+                            placeholder="Type your message..."
+                        />
+                        <button onClick={sendChatMessage} style={{ marginLeft: '10px', padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#007bff', color: '#fff', cursor: 'pointer' }}>
+                            Send
+                        </button>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', marginTop: '10px' }}>
-                    <input
-                        type="text"
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        style={{ flex: 1, padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                        placeholder="Type your message..."
-                    />
-                    <button onClick={sendChatMessage} style={{ marginLeft: '10px', padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#007bff', color: '#fff', cursor: 'pointer' }}>
-                        Send
-                    </button>
-                    <button onClick={runCode} style={{ marginLeft: '10px', padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#28a745', color: '#fff', cursor: 'pointer' }}>
-                        Run Code
-                    </button>
+
+                <div style={{ flex: 1, overflowY: 'auto', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
+                    <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>{output}</pre>
                 </div>
-            </div>
+            </Split>
         </Split>
     );
 };
