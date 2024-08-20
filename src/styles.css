@@ -1,0 +1,49 @@
+/* styles.css */
+
+.split-horizontal {
+    cursor: col-resize;
+}
+
+.split-vertical {
+    cursor: row-resize;
+}
+
+.panel {
+    transition: background-color 0.3s ease;
+}
+
+.panel:hover {
+    background-color: #e0e0e0; /* Slightly darker when hovering */
+}
+
+.language-selector {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.chat-panel, .output-panel, .editor-panel {
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-message {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.chat-message.response {
+    background-color: #d1f7d6; /* Different color for responses */
+}
+
+.split-horizontal .gutter {
+    background-color: #ccc;
+}
+
+.split-vertical .gutter {
+    background-color: #ccc;
+}
